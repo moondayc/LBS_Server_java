@@ -1,0 +1,6 @@
+lib
+*.bin
+*.dat
+a.properties
+a.properties:Zone.Identifier
+*.csv
