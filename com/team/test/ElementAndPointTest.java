@@ -26,7 +26,7 @@ public class ElementAndPointTest {
         Field G1 = bp.getG1();
         Field Gt = bp.getGT();
         Field Zr = bp.getZr();
-
+        
         // 1. 创建一个Element
         Element gtelement = Gt.newRandomElement(); // 随机生成一个元素
         Element g1element = G1.newRandomElement();

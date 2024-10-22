@@ -80,8 +80,8 @@ public class StringMatrixCSV {
         String[][] matrix;
 
         String[] elements = { "Bank", "Restaurant", "Hospital", "School", "Library" };
-        int m = 100;
-        int n = 100;
+        int m = 500;
+        int n = 500;
         matrix = StringMatrixCSV.generateMatrix(m, n, elements);
         StringMatrixCSV.saveMatrixToCSV(matrix,"ServiceM.csv");
         //明文服务点地图

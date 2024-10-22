@@ -17,14 +17,14 @@ import java.io.FileOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 public class Server {
-    SPTest sp;
+    SP sp;
     HashMap<String, Object> params;
     byte[] params_all_bytes = null;
     ServerSocket serverSocket = null;
     byte[] paramHash = null;
-    boolean Update = false; // false表示不更新参数
+    boolean Update = true; // false表示不更新参数
     public Server(int m, int n) throws IOException, ClassNotFoundException {
-        sp = new SPTest();
+        sp = new SP();
         String File_name = String.valueOf(n) +"_"+ String.valueOf(n) + "_"+ "params_bytes.bin";
         String SK_File_name = String.valueOf(n) + "_"+ String.valueOf(n) + "_"+ "SK_bytes.bin";
         File file = new File(File_name);
@@ -34,26 +34,32 @@ public class Server {
             //读取公共参数且计算paramHash,并存储params_bytes
             params_bytes = Server.readBytesFromFile(File_name);
             byte[] SK_byes = Server.readBytesFromFile(SK_File_name);
-            params = SPTest.setUP(params_bytes, SK_byes);
+            params = SP.setUP(params_bytes, SK_byes);
             System.out.println("Read public parameters successfully");
         }
         else {//生成公共参数且转换成bytes+4
-            params = SPTest.setUP(m, n);
-            params_bytes = SPTest.hashMapToByteArray(params); // 假设params是定义好的
+            double startTime, endTime, all_time;
+            startTime = System.currentTimeMillis();
+            params = SP.setUP(m, n);
+            endTime = System.currentTimeMillis();
+            all_time = (endTime - startTime)/1000;
+            System.out.println("系统初始化时间："+"m="+m+",n="+n+", time="+ all_time+" s");
+            params_bytes = SP.hashMapToByteArray(params); // 假设params是定义好的
             // 存储公共参数和记录比特
             writeBytesToFile(params_bytes, File_name);
         }
-        paramHash = sha160(Arrays.toString(params_bytes));
+        paramHash = SP.sha160(Arrays.toString(params_bytes));
         //构造生成params_all_bytes
         int params_bytes_lenght = params_bytes.length;
         ByteBuffer length_buffer = ByteBuffer.allocate(4);
         length_buffer.putInt(params_bytes_lenght); // 将整数写入缓冲区
         byte[] params_byteArray = length_buffer.array();
-        System.out.println("length of params_bytes: " + params_bytes_lenght);
+        System.out.println("length of params_bytes: " + (params_bytes_lenght/1024)+"KB");
         params_all_bytes = new byte[params_byteArray.length + params_bytes.length];
         System.arraycopy(params_byteArray, 0, params_all_bytes, 0, 4);
         System.arraycopy(params_bytes, 0, params_all_bytes, 4, params_bytes.length);
         System.out.println("m = " + m + ", n =" + n);
+
     }
 
     public HashMap<String, Object> process_message(HashMap<String, Object> pi)
@@ -124,27 +130,26 @@ public class Server {
         return data;
     }
 
-    public static byte[] sha160(String input) {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("sha");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        return md.digest(input.getBytes());
-    }
+    // public static byte[] sha160(String input) {
+    //     MessageDigest md;
+    //     try {
+    //         md = MessageDigest.getInstance("sha");
+    //     } catch (NoSuchAlgorithmException e) {
+    //         throw new RuntimeException(e);
+    //     }
+    //     return md.digest(input.getBytes());
+    // }
     
     // 内部类处理客户端请求
     private byte[] convert_pi(HashMap<String, Object> pi)
         throws IOException {
         byte[] PI_bytes;
-        PI_bytes = SPTest.hashMapToByteArray(pi);
+        PI_bytes = SP.hashMapToByteArray(pi);
         
         int PI_bytes_lenght = PI_bytes.length;
         ByteBuffer length_buffer = ByteBuffer.allocate(4);
         length_buffer.putInt(PI_bytes_lenght); // 将整数写入缓冲区
         byte[] PI_length_byteArray = length_buffer.array();
-        System.out.println("PI_bytes_lenght: " + PI_bytes_lenght);
         byte[] PI_all_bytes = new byte[PI_length_byteArray.length + PI_bytes.length];
         //将长度和PI的字节数列整合到PI_all_bytes
         System.arraycopy(PI_length_byteArray, 0, PI_all_bytes, 0, 4);
@@ -165,7 +170,7 @@ public class Server {
             // 读取前四个字节，表示后续字节流的长度
             int dataLength = inputStream.readInt();
 
-            System.out.println("Received data length: " + dataLength);
+            System.out.println("压缩后PUI的字节数: " + ((float)dataLength / 1024) +" KB");
 
             // 创建一个足够大的字节数组来存储后续的字节流
             byte[] data = new byte[dataLength];
@@ -224,11 +229,17 @@ public class Server {
                         System.out.println("开始接受PIU");
                         data = received_message();
                         try {
-                            HashMap<String, Object> pi = SPTest.byteArrayToHashMap(data);
+                            long t1, t2;
+                            t1 = System.currentTimeMillis();
+                            HashMap<String, Object> pi = SP.byteArrayToHashMap(data);
+                            System.out.println("-----------------l="+ pi.get("l")+",k="+(pi.get("k"))+"-----------------");
                             HashMap<String, Object> pi2 = process_message(pi);
+                            t2 = System.currentTimeMillis();
+                            System.out.println("转换和验证PU,生成PI2的时间:"+(t2-t1)+" ms");
                             // 发送证明2
                             if (pi2 != null) {
                                 byte[] pi2_all_bytes = convert_pi(pi2);
+                                System.out.println("请求响应字节数: "+ (((float)(pi2_all_bytes.length - 4))/1024) + "KB");
                                 outputStream.write(pi2_all_bytes);
                                 outputStream.flush();
                                 System.out.println("PI2 发送成功!!");
@@ -278,8 +289,14 @@ public class Server {
     }
 
     public static void main(String[] args) throws ClassNotFoundException, IOException {
-        int m = 10;
-        int n = 10;
+        // int m = 10;
+        // int n = 10;
+        // for (int m = 400; m <= 500; m += 100) {
+        //     new Server(m, m);
+        //     System.out.println("-----------------------"+m+"-----------------------");
+        // }
+        int m = 100;
+        int n = 100;
         Server s = new Server(m, n);
         int port = 2020; // 指定端口
         s.start(port);

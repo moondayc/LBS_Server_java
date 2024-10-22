@@ -1,0 +1,63 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "ElementAndPointTest",
+            "request": "launch",
+            "mainClass": "com.team.test.ElementAndPointTest",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "GetServiceM",
+            "request": "launch",
+            "mainClass": "com.team.test.GetServiceM",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.team.test.Main",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "SP",
+            "request": "launch",
+            "mainClass": "com.team.test.SP",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "mainClass": "com.team.test.Server",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "StringMatrixCSV",
+            "request": "launch",
+            "mainClass": "com.team.test.StringMatrixCSV",
+            "projectName": "project_d641139b"
+        },
+        {
+            "type": "java",
+            "name": "User",
+            "request": "launch",
+            "mainClass": "com.team.test.User",
+            "projectName": "project_d641139b"
+        }
+    ]
+}
